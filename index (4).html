@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-Hant" data-root="../../" data-tool="nystagmus">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>攝影眼振圖 · Neuro-A</title>
+<meta name="description" content="用鏡頭或影片追蹤虹膜，畫出眼振圖並估算快相方向、頻率與慢相速度">
+<meta name="theme-color" content="#08666e">
+<link rel="icon" href="../../assets/img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../assets/img/icon-180.png">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../../assets/css/neuro-a.css">
+<script>try{var t=JSON.parse(localStorage.getItem('neuroa:theme'));if(t&&t!=='system')document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+.ny-top{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media (max-width:980px){.ny-top{grid-template-columns:minmax(0,1fr)}}
+.ny-view{padding:12px;display:grid;gap:10px}
+.pv{position:relative;width:100%;aspect-ratio:16/9;max-height:44vh;background:#0b0f11;border-radius:6px;overflow:hidden;margin:0 auto}
+.pv video,.pv canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;max-width:none}
+.pv.mirror video,.pv.mirror canvas{transform:scaleX(-1)}
+.pv-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#c9d6da;padding:20px;font-size:.92rem}
+.pv-empty svg{width:40px;height:40px;opacity:.7;margin:0 auto 8px;display:block}
+.calmsg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(8,40,44,.88);color:#fff;padding:14px 20px;border-radius:10px;font-size:1.05rem;text-align:center;max-width:90%}
+.calmsg b{display:block;font-family:var(--f-mono);font-size:2rem;margin-top:4px}
+.zooms{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.zooms figure{margin:0;display:grid;gap:4px}
+.zooms canvas{width:100%;aspect-ratio:5/2;border-radius:6px;background:#111;display:block}
+.zooms figcaption{font-size:.78rem;color:var(--ink-3);text-align:center}
+.zooms.mirror figure:first-child{order:2}
+.ny-ctl{display:grid;gap:0}
+.ny-ctl .grp{padding:12px 16px;display:grid;gap:10px;border-bottom:1px solid var(--line-2)}
+.ny-ctl .grp:last-child{border-bottom:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.rec-box{display:grid;gap:4px}
+.rec-bar{height:6px;background:var(--sunk);border-radius:3px;overflow:hidden}
+.rec-bar i{display:block;height:100%;width:0;background:var(--crit)}
+.trace-card canvas{display:block;width:100%;height:220px}
+.live-read{display:flex;flex-wrap:wrap;gap:4px 18px;padding:8px 16px 12px;font-size:.84rem;color:var(--ink-2);min-height:2.4em}
+.live-read b{color:var(--accent)}
+#results{display:grid;gap:12px}
+.result .rh{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.result .rh b{font-size:1rem}
+.res-trace{padding:8px 8px 0}
+.res-trace canvas{display:block;width:100%;height:200px}
+.result textarea.sum{width:100%;min-height:84px;resize:vertical;font-family:var(--f-mono);font-size:.8rem;line-height:1.6;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--raise);color:var(--ink)}
+.howto{margin:0;padding-left:1.3em;display:grid;gap:6px;font-size:.88rem;color:var(--ink-2)}
+.howto b{color:var(--ink)}
+.lower{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<header id="na-header"></header>
+
+<main class="na-main wide">
+  <div class="na-pagehead">
+    <div>
+      <h1>攝影眼振圖 <small>Video nystagmogram</small></h1>
+      <p>用鏡頭或手機錄的影片追蹤虹膜位置，畫出水平與垂直眼位軌跡，自動估算快相方向、頻率與慢相速度。影像只在這台裝置上處理，不會上傳。</p>
+    </div>
+  </div>
+
+  <div id="status" class="note-box" role="status"></div>
+
+  <div class="ny-top">
+    <section class="card ny-view">
+      <div class="zooms" id="zooms">
+        <figure><canvas id="zR"></canvas><figcaption>右眼 OD</figcaption></figure>
+        <figure><canvas id="zL"></canvas><figcaption>左眼 OS</figcaption></figure>
+      </div>
+      <div class="pv mirror" id="pv">
+        <video id="video" playsinline muted></video>
+        <canvas id="ov"></canvas>
+        <div class="pv-empty" id="pv-empty"><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7.5h4l1.5-2h6l1.5 2h4v11h-17z"/><circle cx="12" cy="13" r="3.3"/></svg>開啟鏡頭或選擇影片後，畫面會顯示在這裡</div></div>
+        <div class="calmsg" id="calmsg" hidden></div>
+      </div>
+    </section>
+
+    <aside class="card ny-ctl">
+      <div class="grp">
+        <div class="seg"><button type="button" data-src="camera">鏡頭</button><button type="button" data-src="file">影片檔</button></div>
+        <div id="src-cam" style="display:grid;gap:8px">
+          <label class="field" for="cam">鏡頭<select id="cam"><option value="">預設鏡頭</option></select></label>
+          <div class="btn-row"><button type="button" class="btn primary" id="cam-start">開啟鏡頭</button><button type="button" class="btn" id="cam-stop" hidden>關閉</button></div>
+        </div>
+        <div id="src-file" style="display:grid;gap:8px" hidden>
+          <label class="field" for="file">影片檔（手機錄的 mp4 / mov 皆可）<input type="file" id="file" accept="video/*"></label>
+          <label class="field" for="rate">分析時的播放速度<select id="rate"><option value="1">1×</option><option value="0.5">0.5×（建議）</option><option value="0.25">0.25×（高格率影片）</option></select></label>
+          <button type="button" class="btn primary" id="analyze-file" disabled>分析整段影片</button>
+        </div>
+      </div>
+      <div class="grp">
+        <div class="two">
+          <label class="field" for="cond">檢查條件<select id="cond"></select></label>
+          <label class="field" for="dur">錄製長度<select id="dur"><option value="10">10 秒</option><option value="20">20 秒</option><option value="30">30 秒</option><option value="60">60 秒</option></select></label>
+        </div>
+        <input class="input" type="text" id="cond-custom" placeholder="自訂條件名稱" maxlength="40" hidden aria-label="自訂條件名稱">
+        <div class="btn-row"><button type="button" class="btn rec" id="rec" disabled>開始錄製</button><button type="button" class="btn" id="rec-stop" hidden>提早結束</button></div>
+        <div class="rec-box" id="rec-box" hidden><div class="rec-bar"><i id="rec-prog"></i></div><span class="mono faint" id="rec-time" style="font-size:.78rem"></span></div>
+      </div>
+      <div class="grp">
+        <div class="field">分析眼睛<div class="seg"><button type="button" data-eye="both">雙眼平均</button><button type="button" data-eye="R">右眼</button><button type="button" data-eye="L">左眼</button></div></div>
+        <div class="two">
+          <label class="field" for="scale">軌跡範圍<select id="scale"><option value="5">±5°</option><option value="10">±10°</option><option value="20">±20°</option><option value="30">±30°</option></select></label>
+          <label class="field" for="cal-angle">校正目標角度（°）<input type="number" id="cal-angle" value="15" min="5" max="40" step="1" inputmode="numeric"></label>
+        </div>
+        <div class="btn-row"><button type="button" class="btn small" id="zero" disabled>歸零（看正前方時按）</button><button type="button" class="btn small" id="calib" disabled>校正</button></div>
+        <label class="check"><input type="checkbox" id="mirror"> 預覽鏡像（病人自己看螢幕時較直覺）</label>
+        <label class="check"><input type="checkbox" id="flipped"> 影像已左右翻轉（自拍鏡像錄製的影片）</label>
+      </div>
+      <div class="grp">
+        <div class="chips">
+          <span class="chip">處理 <span id="fps">–</span>&nbsp;fps</span>
+          <span class="chip">追蹤 <span id="track">–</span></span>
+          <span class="chip" id="cal-state"></span>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="card trace-card">
+    <div class="card-head"><span class="label">即時軌跡（最近 10 秒）</span><span class="faint" style="font-size:.78rem">往上 = 向右／向上</span></div>
+    <div style="padding:8px 8px 0"><canvas id="trace"></canvas></div>
+    <div class="live-read" id="live-read"></div>
+  </section>
+
+  <div id="results"></div>
+
+  <div class="lower">
+    <section class="card">
+      <div class="card-head"><span class="label">使用方式</span></div>
+      <div class="card-body">
+        <ol class="howto">
+          <li><b>擺位</b>：鏡頭與眼睛同高、距離約 30–50 cm，臉部填滿畫面一半以上；光線從前方打亮，避免背光與眼鏡反光。</li>
+          <li><b>固定頭部</b>：請病人頭靠椅背或由助手扶住，只動眼睛。</li>
+          <li><b>歸零／校正</b>：看正前方時按「歸零」。需要較準確的角度時按「校正」，依提示看正前方、病人右側與左側固定角度的目標（例如距離 50 cm、左右各 13 cm 約為 15°）。</li>
+          <li><b>錄製</b>：選檢查條件後按「開始錄製」。每個條件建議 20 秒以上。</li>
+          <li><b>手機影片</b>：用手機慢動作（120/240 fps）或一般 60 fps 錄影，再到「影片檔」分析，時間解析度比網路攝影機好。</li>
+        </ol>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-head"><span class="label">限制</span></div>
+      <div class="card-body">
+        <ul class="howto">
+          <li>這是輔助紀錄工具，不是醫療器材；判讀請以影像與臨床檢查為準。</li>
+          <li>一般鏡頭 30 fps 對小幅度（&lt;1°）或高頻的眼振不敏感，快相幅度與慢相速度可能低估；60 fps 以上較可靠。</li>
+          <li>無法量測旋轉性（torsional）成分；有明顯旋轉成分的眼振（例如 BPPV 後半規管型）請以影像判讀。</li>
+          <li>病人有注視點可抑制周邊性眼振，無法取代 Frenzel 鏡或 VNG 的去除注視條件。</li>
+          <li>未校正時角度依眼球模型估算，個體差異大，適合看方向、頻率與前後比較。</li>
+          <li>結果只保留在這個分頁，重新整理就會消失，需要保存請下載 CSV 或圖檔。</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer id="na-footer"></footer>
+
+<script src="../../assets/js/tools.config.js"></script>
+<script src="../../assets/js/neuro-a.js"></script>
+<script src="nystagmus-analysis.js"></script>
+<script src="nystagmus.js"></script>
+</body>
+</html>

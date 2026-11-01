@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-Hant" data-root="../../" data-tool="med-list">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>藥單整理 · Neuro-A</title>
+<meta name="description" content="貼上藥名、劑量、頻次與院所，依院所分組輸出">
+<meta name="theme-color" content="#08666e">
+<link rel="icon" href="../../assets/img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../assets/img/icon-180.png">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../../assets/css/neuro-a.css">
+<script>try{var t=JSON.parse(localStorage.getItem('neuroa:theme'));if(t&&t!=='system')document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+.work{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.work{grid-template-columns:minmax(0,1fr)}}
+.panel{display:flex;flex-direction:column;overflow:hidden}
+.panel textarea{display:block;width:100%;border:0;outline:none;resize:vertical;background:transparent;color:var(--ink);font-family:var(--f-mono);font-size:.9rem;line-height:1.75;padding:14px 16px;min-height:340px}
+.panel textarea:focus-visible{box-shadow:inset 0 0 0 2px var(--accent-soft)}
+.panel textarea::placeholder{color:var(--ink-3)}
+#out{background:var(--raise)}
+.opts{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:9px 16px;border-bottom:1px solid var(--line-2);font-size:.84rem;color:var(--ink-2)}
+.opts label{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.opts select{font-size:.84rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:4px 6px}
+.help{border-top:1px solid var(--line-2);padding:10px 16px 12px;font-size:.86rem;color:var(--ink-2)}
+.help ul{margin:8px 0 0;padding-left:1.2em;display:grid;gap:4px}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--sunk);color:var(--ink);padding:0 4px;border-radius:3px}
+.summary{display:flex;flex-wrap:wrap;gap:6px}
+.dupnote{margin:0;padding:10px 16px;background:var(--crit-soft);color:var(--crit);font-size:.86rem;border-bottom:1px solid var(--line-2)}
+.dupnote b{font-weight:600}
+.ledger table{width:100%;min-width:720px;border-collapse:collapse;font-size:.9rem}
+.ledger thead th{font-size:.72rem;font-weight:600;letter-spacing:.12em;color:var(--ink-3);text-align:left;padding:8px 11px;border-bottom:1px solid var(--line);white-space:nowrap}
+.ledger tr.grp th{background:var(--raise);padding:5px 10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line-2);text-align:left}
+.ledger tbody tr.grp:first-child th{border-top:0}
+.ledger tr.grp.unk th{background:var(--warn-soft)}
+.grp-in{display:flex;align-items:center;gap:10px}
+.grp-count{font-size:.76rem;color:var(--ink-3);font-weight:400;white-space:nowrap}
+.ledger td{padding:2px 4px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+.ledger td.idx{width:2.4rem;text-align:right;padding-right:8px;color:var(--ink-3);cursor:help;font-family:var(--f-mono);font-size:.8rem}
+.ledger td input,.grp-name{width:100%;font:inherit;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:4px;padding:6px 7px}
+.grp-name{flex:1;min-width:0;font-family:var(--f-tc);font-weight:700;font-size:.95rem}
+tr.unk .grp-name::placeholder{color:var(--warn);font-weight:500}
+.ledger td input.mono{font-family:var(--f-mono);font-size:.86rem}
+.ledger td input:hover,.grp-name:hover{border-color:var(--line)}
+.ledger td input:focus,.grp-name:focus{outline:none;border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px var(--accent-soft)}
+.flags{white-space:nowrap}
+.okmark{color:var(--accent);font-size:.85rem;padding-left:6px}
+.act{width:2.6rem;text-align:center}
+.del{font:inherit;font-size:1.1rem;line-height:1;width:28px;height:28px;border:0;border-radius:4px;background:transparent;color:var(--ink-3);cursor:pointer}
+.del:hover{color:var(--crit);background:var(--crit-soft)}
+tr.empty td{padding:30px 16px;text-align:center;color:var(--ink-3)}
+@media (max-width:600px){.panel textarea,.ledger td input,.grp-name,.opts select{font-size:16px}}
+</style>
+</head>
+<body>
+<header id="na-header"></header>
+
+<main class="na-main wide">
+  <div class="na-pagehead">
+    <div>
+      <h1>藥單整理 <small>跨院所用藥</small></h1>
+      <p>貼上藥名、劑量、頻次與院所，依院所分組後依序輸出。清單內容只在這個分頁處理，不會上傳也不會儲存。</p>
+    </div>
+  </div>
+
+  <section class="work">
+    <div class="card panel">
+      <div class="card-head">
+        <span class="label" style="display:flex;gap:8px;align-items:center"><label for="src">原始清單</label><span class="chip accent" id="sample-tag">範例</span></span>
+        <div class="btn-row">
+          <button type="button" class="btn small" id="btn-sample">載入範例</button>
+          <button type="button" class="btn small" id="btn-clear">清除</button>
+        </div>
+      </div>
+      <textarea id="src" spellcheck="false" placeholder="例如：&#10;台中醫院&#10;Aspirin 100mg QD&#10;Concor 1.25mg 1# QD&#10;&#10;Lipitor 20mg HS 仁愛診所"></textarea>
+      <details class="help disclose">
+        <summary>輸入格式說明</summary>
+        <ul>
+          <li>一行一筆，也可以在同一行用 <code>、</code> <code>，</code> <code>；</code> 隔開多筆。</li>
+          <li>院所寫在藥物<b>前面</b>（單獨一行，或 <code>中國附醫：</code>）→ 套用到之後各筆，直到出現下一個院所。</li>
+          <li>院所寫在藥物<b>後面</b> → 套用到同一行裡還沒標院所的那幾筆。</li>
+          <li>同時有含量與每次量（<code>Concor 1.25mg 1# QD</code>）時，含量留在藥名，<code>1#</code> 當劑量。</li>
+          <li>可辨識頻次：<code>QD</code> <code>BID</code> <code>TID</code> <code>QID</code> <code>HS</code> <code>QOD</code> <code>Q8H</code> <code>PRN</code> <code>AC/PC</code>，以及「每日一次」「睡前」「三餐飯後」等寫法；給藥途徑（<code>PO</code>、<code>SC</code>…）併入頻次欄。</li>
+          <li>療程天數（<code>x28天</code>、<code>28d</code>）與 6 碼以上的代碼會略過。從 Excel 貼上含標題列（藥名／劑量／頻次／院所）時會依欄位對應。</li>
+        </ul>
+      </details>
+    </div>
+
+    <div class="card panel">
+      <div class="card-head">
+        <span class="label"><label for="out">輸出</label></span>
+        <button type="button" class="btn small primary" id="btn-copy">複製</button>
+      </div>
+      <div class="opts">
+        <label for="o-head">院所標題
+          <select id="o-head"><option value="quote">"院所"</option><option value="plain">院所</option><option value="bracket">【院所】</option></select>
+        </label>
+        <label for="o-sep">欄位分隔
+          <select id="o-sep"><option value="comma">半形逗號 ,</option><option value="fw">全形逗號 ，</option><option value="tab">Tab（貼進 Excel）</option></select>
+        </label>
+        <label class="check" for="o-num"><input type="checkbox" id="o-num"> 編號</label>
+        <label class="check" for="o-gap"><input type="checkbox" id="o-gap" checked> 院所間空一行</label>
+      </div>
+      <textarea id="out" readonly spellcheck="false" placeholder="整理後的清單會出現在這裡"></textarea>
+    </div>
+  </section>
+
+  <section class="card ledger">
+    <div class="card-head">
+      <span class="label">逐筆核對</span>
+      <div class="summary" id="summary"></div>
+    </div>
+    <p class="dupnote" id="dupnote" hidden></p>
+    <div class="table-wrap">
+      <table>
+        <colgroup><col style="width:2.6rem"><col style="width:30%"><col style="width:13%"><col style="width:15%"><col style="width:21%"><col><col style="width:2.8rem"></colgroup>
+        <thead><tr><th>#</th><th>藥名</th><th>劑量</th><th>頻次</th><th>院所</th><th>狀態</th><th></th></tr></thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+    <p class="note" style="padding:10px 16px;border-top:1px solid var(--line-2)">欄位可直接修改，輸出會同步更新；改院所會重新分組，改分組標題會整組換名。游標停在序號上可看原文。修改上方原始清單會重新解析，這裡的手動修改會被覆蓋。</p>
+  </section>
+</main>
+
+<footer id="na-footer"></footer>
+
+<script src="../../assets/js/tools.config.js"></script>
+<script src="../../assets/js/neuro-a.js"></script>
+<script src="med-list.js"></script>
+</body>
+</html>

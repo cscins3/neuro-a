@@ -1,0 +1,79 @@
+<!doctype html>
+<!--
+  新工具範本
+  1. 把整個 tools/template/ 資料夾複製成新名字，例如 tools/gcs/
+  2. 把下面 data-tool="template" 改成新的 id（和 tools.config.js 那一筆一樣）
+  3. 量表類：只要改 scale.data.js
+     其他類型：把 <main> 裡的內容換成自己的，並刪掉 scale-engine.js 那行
+-->
+<html lang="zh-Hant" data-root="../../" data-tool="template">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>範本 · Neuro-A</title>
+<meta name="theme-color" content="#08666e">
+<link rel="icon" href="../../assets/img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../assets/img/icon-180.png">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../../assets/css/neuro-a.css">
+<script>try{var t=JSON.parse(localStorage.getItem('neuroa:theme'));if(t&&t!=='system')document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+.scale{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+@media (max-width:900px){.scale{grid-template-columns:minmax(0,1fr)}}
+#items{display:grid;gap:12px;min-width:0}
+.item-head{display:flex;align-items:center;gap:12px;padding:12px 16px 4px}
+.code{flex:none;min-width:34px;height:28px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-sm);background:var(--sunk);color:var(--ink-2);font-weight:600}
+.ttl{min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
+.ttl h2{font-size:1.04rem;font-weight:700}
+.ttl span{color:var(--ink-3);font-size:.84rem}
+.item-score{margin-left:auto;font-size:1.3rem;font-weight:600;color:var(--ink-3)}
+.item-score.set{color:var(--accent)}
+.item-hint{padding:0 16px;font-size:.86rem;color:var(--ink-2)}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;padding:10px 16px 16px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);cursor:pointer;color:var(--ink)}
+.opt:hover{border-color:var(--accent-line)}
+.opt[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt-s{flex:none;min-width:28px;height:24px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;background:var(--sunk);color:var(--ink-2);font-weight:600;font-size:.86rem}
+.opt[aria-checked="true"] .opt-s{background:var(--accent);color:var(--accent-ink)}
+.opt-t{display:grid;font-size:.88rem;line-height:1.4}
+.opt-t small{color:var(--ink-3);font-size:.76rem}
+.side{position:sticky;top:calc(var(--head-h) + 16px + env(safe-area-inset-top,0px));display:grid;gap:10px;padding:16px}
+@media (max-width:900px){.side{position:static}}
+.tot{display:flex;align-items:baseline;gap:8px}
+.tot b{font-family:var(--f-mono);font-size:2.8rem;line-height:1;font-weight:600}
+#out{width:100%;min-height:70px;resize:vertical;font-family:var(--f-mono);font-size:.82rem;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--raise);color:var(--ink)}
+</style>
+</head>
+<body>
+<header id="na-header"></header>
+
+<main class="na-main">
+  <div class="na-pagehead">
+    <div>
+      <h1 id="scale-title"></h1>
+      <p id="scale-intro"></p>
+    </div>
+  </div>
+  <div class="scale">
+    <div id="items"></div>
+    <aside class="card side">
+      <span class="label">總分</span>
+      <div class="tot"><b id="total">0</b><span class="mono faint" id="total-max"></span><span id="band"></span></div>
+      <span class="note" id="progress"></span>
+      <textarea id="out" readonly aria-label="病歷文字"></textarea>
+      <div class="btn-row"><button type="button" class="btn primary" id="copy">複製</button><button type="button" class="btn danger" id="reset">重設</button></div>
+    </aside>
+  </div>
+</main>
+
+<footer id="na-footer"></footer>
+
+<script src="../../assets/js/tools.config.js"></script>
+<script src="../../assets/js/neuro-a.js"></script>
+<script src="scale.data.js"></script>
+<script src="../../assets/js/scale-engine.js"></script>
+</body>
+</html>

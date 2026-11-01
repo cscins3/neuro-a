@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-Hant" data-root="../../" data-tool="nihss">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NIHSS · Neuro-A</title>
+<meta name="description" content="NIH Stroke Scale 逐項圖示評分">
+<meta name="theme-color" content="#08666e">
+<link rel="icon" href="../../assets/img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../assets/img/icon-180.png">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../../assets/css/neuro-a.css">
+<script>try{var t=JSON.parse(localStorage.getItem('neuroa:theme'));if(t&&t!=='system')document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+.nihss{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}
+@media (max-width:1000px){.nihss{grid-template-columns:minmax(0,1fr)}}
+#items{display:grid;gap:14px;min-width:0}
+.item{scroll-margin-top:calc(var(--head-h) + 12px + env(safe-area-inset-top,0px))}
+.item-head{display:flex;align-items:center;gap:12px;padding:12px 16px 4px}
+.code{flex:none;min-width:38px;height:28px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-sm);background:var(--sunk);color:var(--ink-2);font-weight:600;font-size:.9rem}
+.ttl{min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px}
+.ttl h2{font-size:1.06rem;font-weight:700}
+.ttl span{color:var(--ink-3);font-size:.84rem}
+.item-score{margin-left:auto;flex:none;font-size:1.35rem;font-weight:600;color:var(--ink-3);min-width:2ch;text-align:right}
+.item-score.set{color:var(--accent)}
+.item-hint{padding:0 16px}
+.item-hint .hint-body{padding:6px 0 4px;display:grid;gap:8px;font-size:.88rem;color:var(--ink-2);max-width:72ch}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px;padding:10px 16px 16px}
+.opt{position:relative;display:flex;flex-direction:column;gap:6px;text-align:left;padding:8px 10px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);cursor:pointer;color:var(--ink);transition:border-color .12s,background .12s}
+.opt:hover{border-color:var(--accent-line)}
+.opt[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt-s{align-self:flex-start;min-width:28px;height:24px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;background:var(--sunk);color:var(--ink-2);font-weight:600;font-size:.9rem}
+.opt[aria-checked="true"] .opt-s{background:var(--accent);color:var(--accent-ink)}
+.opt-fig{display:block;padding:2px 4px}
+.opt-t{font-size:.84rem;line-height:1.45;color:var(--ink-2)}
+.opt[aria-checked="true"] .opt-t{color:var(--ink)}
+.opt.un{grid-column:1/-1;flex-direction:row;align-items:center;gap:10px;padding:6px 10px;border-style:dashed}
+.opt.un .opt-s{font-size:.78rem}
+.opt.un[aria-checked="true"]{border-style:solid}
+.coma-note{margin:0 16px 16px;padding:10px 12px;border-radius:var(--r-sm);background:var(--warn-soft);color:var(--warn);font-size:.86rem;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+
+/* summary */
+.summary{position:sticky;top:calc(var(--head-h) + 16px + env(safe-area-inset-top,0px));display:grid;gap:12px;scroll-margin-top:calc(var(--head-h) + 12px)}
+@media (max-width:1000px){.summary{position:static}}
+.total-box{padding:16px;display:grid;gap:8px}
+.total-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.total-row .lbl{font-size:.78rem;letter-spacing:.14em;color:var(--ink-3);font-weight:600}
+.total-num{font-family:var(--f-mono);font-size:3rem;line-height:1;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.total-max{font-family:var(--f-mono);color:var(--ink-3)}
+.progress{height:4px;background:var(--sunk);border-radius:2px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.cell{display:grid;gap:0;justify-items:center;padding:5px 2px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);cursor:pointer;color:var(--ink)}
+.cell span{font-size:.7rem;color:var(--ink-3)}
+.cell b{font-size:.98rem;font-weight:600}
+.cell.empty{border-style:dashed;background:var(--raise)}
+.cell.empty b{color:var(--ink-3)}
+.cell:hover{border-color:var(--accent-line)}
+.meta-fields{display:grid;grid-template-columns:1fr;gap:8px}
+@media (max-width:1000px) and (min-width:521px){.meta-fields{grid-template-columns:1fr 1fr}}
+#out{width:100%;min-height:120px;resize:vertical;font-family:var(--f-mono);font-size:.8rem;line-height:1.6;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--raise);color:var(--ink)}
+.hist{list-style:none;margin:0;padding:0;display:grid}
+.hist li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--line-2);font-size:.84rem}
+.hist li:last-child{border-bottom:0}
+.hist li>div:first-child{display:flex;align-items:baseline;gap:10px;min-width:0}
+.hist li b{font-size:1.05rem;color:var(--accent);min-width:2ch}
+.hist li span{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist li.empty{color:var(--ink-3);display:block}
+
+/* mobile bar */
+.mbar{display:none}
+@media (max-width:1000px){
+  .mbar{display:flex;position:sticky;bottom:0;z-index:10;align-items:center;gap:10px;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -4px 14px rgba(0,0,0,.06)}
+  .mbar .t{font-family:var(--f-mono);font-size:1.7rem;font-weight:600;line-height:1}
+  .mbar .p{font-family:var(--f-mono);font-size:.8rem;color:var(--ink-3)}
+  .mbar .btn-row{margin-left:auto}
+  .na-main{padding-bottom:0}
+}
+
+/* stimulus dialog */
+.stim-lines{margin:14px 0 0;padding-left:1.6em;display:grid;gap:14px;font-size:clamp(1.3rem,4vw,1.9rem);line-height:1.35;font-weight:500}
+.stim-lines.words{list-style:none;padding-left:0;font-family:var(--f-mono);letter-spacing:.04em}
+.naming{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
+.naming figure{margin:0;border:1px solid var(--line-2);border-radius:var(--r);padding:10px;display:grid;gap:4px;justify-items:center}
+.naming .fig{max-width:150px}
+.naming .fig .s,.naming .fig .bg{stroke-width:2.6}
+.naming figcaption{min-height:1.5em;font-size:.86rem;color:var(--ink-2)}
+.naming .ans{visibility:hidden}
+.reveal .naming .ans{visibility:visible}
+@media (max-width:520px){.naming{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header id="na-header"></header>
+
+<main class="na-main wide">
+  <div class="na-pagehead">
+    <div>
+      <h1>NIHSS <small>NIH Stroke Scale</small></h1>
+      <p>依序評估 15 項，點選最符合的選項。再點一次可取消。分數只計第一次的實際表現，不要猜病人「能」做到什麼。</p>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn" data-open-stim>刺激圖卡</button>
+      <label class="check"><input type="checkbox" id="auto"> 自動跳到下一項</label>
+    </div>
+  </div>
+
+  <div class="nihss">
+    <div id="items"></div>
+
+    <aside class="summary" id="summary">
+      <section class="card total-box">
+        <div class="total-row"><span class="lbl">總分</span><span id="sev"></span></div>
+        <div class="total-row"><span class="total-num" id="total" aria-live="polite">0</span><span class="total-max">/ 42</span></div>
+        <div class="progress"><i id="bar"></i></div>
+        <span class="note" id="progress"></span>
+        <div class="grid" id="grid"></div>
+        <p class="faint" style="font-size:.76rem">分級為常用參考區間；UN 不計入總分。</p>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><span class="label">病歷文字</span>
+          <div class="seg" id="fmt"><button type="button" data-fmt="compact">精簡</button><button type="button" data-fmt="detailed">逐項</button></div>
+        </div>
+        <div class="card-body" style="display:grid;gap:10px">
+          <div class="meta-fields">
+            <label class="field" for="when">評估時間<input type="datetime-local" id="when"></label>
+            <label class="field" for="label">標記<input type="text" id="label" placeholder="例如 tPA 前、24 h" maxlength="40"></label>
+          </div>
+          <textarea id="out" readonly spellcheck="false" aria-label="病歷文字"></textarea>
+          <div class="btn-row">
+            <button type="button" class="btn primary" id="copy">複製</button>
+            <button type="button" class="btn" id="save">儲存</button>
+            <button type="button" class="btn danger" id="reset">重設</button>
+          </div>
+          <p class="faint" style="font-size:.76rem">標記欄請勿填入姓名、病歷號等可識別病人的資料。</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><span class="label">本機紀錄</span></div>
+        <div class="card-body"><ul class="hist" id="hist"></ul></div>
+      </section>
+    </aside>
+
+    <div class="mbar">
+      <span class="t" id="m-total">0</span>
+      <span id="m-sev"></span>
+      <span class="p" id="m-progress"></span>
+      <div class="btn-row">
+        <button type="button" class="btn small" id="m-sum">總覽</button>
+        <button type="button" class="btn small primary" id="m-copy">複製</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<dialog class="na-dialog" id="stim" aria-label="NIHSS 刺激圖卡">
+  <div class="card-head">
+    <div class="seg" id="stim-tabs"></div>
+    <button type="button" class="btn small" id="stim-close">關閉</button>
+  </div>
+  <div class="card-body" id="stim-body"></div>
+</dialog>
+
+<footer id="na-footer"></footer>
+
+<script src="../../assets/js/tools.config.js"></script>
+<script src="../../assets/js/neuro-a.js"></script>
+<script src="nihss.data.js"></script>
+<script src="nihss.js"></script>
+</body>
+</html>

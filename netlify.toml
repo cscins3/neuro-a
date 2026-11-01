@@ -1,0 +1,16 @@
+# Netlify 設定：純靜態網站，不需要建置指令
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # 只允許本站使用鏡頭（攝影眼振圖需要）
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=()"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/*.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"

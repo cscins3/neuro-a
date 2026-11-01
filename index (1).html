@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-Hant" data-root="../../" data-tool="okn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OKN · Neuro-A</title>
+<meta name="description" content="視動性眼振（OKN）刺激動畫，可調方向與速度">
+<meta name="theme-color" content="#08666e">
+<link rel="icon" href="../../assets/img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../assets/img/icon-180.png">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../../assets/css/neuro-a.css">
+<script>try{var t=JSON.parse(localStorage.getItem('neuroa:theme'));if(t&&t!=='system')document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+.okn{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+@media (max-width:960px){.okn{grid-template-columns:minmax(0,1fr)}}
+.stage{position:relative;width:100%;aspect-ratio:16/10;max-height:72vh;border-radius:var(--r);overflow:hidden;background:#fff;border:1px solid var(--line);cursor:pointer;touch-action:manipulation}
+.stage canvas{display:block;position:absolute;inset:0;max-width:none}
+.stage .hud{position:absolute;left:10px;bottom:10px;font-family:var(--f-mono);font-size:.78rem;padding:3px 8px;border-radius:4px;background:rgba(0,0,0,.6);color:#fff;pointer-events:none}
+.stage .startcue{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.stage .startcue span{background:rgba(8,40,44,.82);color:#fff;padding:10px 18px;border-radius:999px;font-size:.95rem}
+.stage.running .startcue{display:none}
+.stage:fullscreen,.stage.pseudo-fs{width:100vw;height:100vh;max-height:none;aspect-ratio:auto;border:0;border-radius:0}
+.stage:-webkit-full-screen{width:100vw;height:100vh;max-height:none;aspect-ratio:auto;border:0;border-radius:0}
+.stage.pseudo-fs{position:fixed;inset:0;z-index:200;height:100%}
+.stage.is-fs .hud{display:none}
+.fs-tools{position:absolute;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:none;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;padding:8px;border-radius:12px;background:rgba(10,20,24,.82);color:#fff;max-width:calc(100% - 24px)}
+.stage.is-fs.show-tools .fs-tools{display:flex}
+.fs-tools button{min-width:44px;height:44px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font-size:1.05rem;cursor:pointer;font-family:var(--f-mono)}
+.fs-tools button[aria-pressed="true"]{background:#fff;color:#0a1418}
+.fs-tools .info{font-family:var(--f-mono);font-size:.85rem;padding:0 8px;white-space:nowrap}
+.panel{display:grid;gap:14px}
+.ctl{display:grid;gap:14px;padding:16px}
+.dirpad{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,40px);gap:4px;justify-content:start}
+.dirpad button{border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font-size:1.1rem;cursor:pointer;font-family:var(--f-mono)}
+.dirpad button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.dirpad [data-dir="U"]{grid-column:2;grid-row:1}.dirpad [data-dir="L"]{grid-column:1;grid-row:2}.dirpad [data-dir="R"]{grid-column:3;grid-row:2}.dirpad [data-dir="D"]{grid-column:2;grid-row:3}
+.ctl-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.expect{font-size:.84rem;color:var(--ink-2);background:var(--raise);border:1px solid var(--line-2);border-radius:var(--r-sm);padding:8px 10px}
+.expect b{color:var(--accent)}
+.derived{font-family:var(--f-mono);font-size:.74rem;color:var(--ink-3)}
+.lower{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:minmax(0,1fr)}}
+.frow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--line-2)}
+.frow:last-child{border-bottom:0}
+.fdir{font-size:.9rem}.fdir b{font-family:var(--f-mono);color:var(--accent);margin-right:4px}
+#f-out{width:100%;min-height:76px;resize:vertical;font-family:var(--f-mono);font-size:.8rem;line-height:1.6;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--raise);color:var(--ink)}
+.clin{margin:0;padding-left:1.2em;display:grid;gap:8px;font-size:.88rem;color:var(--ink-2)}
+.clin b{color:var(--ink);font-weight:600}
+.cal-wrap{display:grid;gap:14px;justify-items:start}
+.card-shape{border:2px dashed var(--accent);border-radius:10px;background:var(--accent-soft);max-width:100%}
+.keys{font-size:.8rem;color:var(--ink-3)}
+.keys kbd{font-family:var(--f-mono);font-size:.75rem;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--ink-2);background:var(--surface)}
+</style>
+</head>
+<body>
+<header id="na-header"></header>
+
+<main class="na-main wide">
+  <div class="na-pagehead">
+    <div>
+      <h1>OKN <small>Optokinetic nystagmus stimulus</small></h1>
+      <p>讓病人注視螢幕上移動的條紋，觀察眼振的慢相與快相。全螢幕、靠近觀看效果最好；點畫面可開始或暫停。</p>
+    </div>
+  </div>
+
+  <div class="okn">
+    <div style="display:grid;gap:10px;min-width:0">
+      <div class="stage" id="stage" aria-label="OKN 刺激畫面">
+        <canvas id="cv"></canvas>
+        <div class="startcue"><span>點一下開始</span></div>
+        <div class="hud" id="hud"></div>
+        <div class="fs-tools" role="toolbar" aria-label="全螢幕控制">
+          <button type="button" data-dir="L" aria-label="向左">←</button>
+          <button type="button" data-dir="U" aria-label="向上">↑</button>
+          <button type="button" data-dir="D" aria-label="向下">↓</button>
+          <button type="button" data-dir="R" aria-label="向右">→</button>
+          <button type="button" id="fs-slower" aria-label="減速">−</button>
+          <span class="info" id="fs-info"></span>
+          <button type="button" id="fs-faster" aria-label="加速">+</button>
+          <button type="button" id="fs-play" aria-label="開始或暫停">▶</button>
+          <button type="button" id="fs-exit" aria-label="離開全螢幕">✕</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn primary" id="play" aria-pressed="false">開始</button>
+        <button type="button" class="btn" id="fs">全螢幕</button>
+        <span class="keys">鍵盤：<kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> 方向・<kbd>Space</kbd> 暫停・<kbd>+</kbd><kbd>−</kbd> 速度・<kbd>[</kbd><kbd>]</kbd> 寬度・<kbd>F</kbd> 全螢幕</span>
+      </div>
+    </div>
+
+    <aside class="panel">
+      <section class="card ctl">
+        <div class="ctl-row">
+          <div class="field" style="gap:6px">條紋移動方向
+            <div class="dirpad">
+              <button type="button" data-dir="U" aria-label="向上">↑</button>
+              <button type="button" data-dir="L" aria-label="向左">←</button>
+              <button type="button" data-dir="R" aria-label="向右">→</button>
+              <button type="button" data-dir="D" aria-label="向下">↓</button>
+            </div>
+          </div>
+          <div class="field" style="gap:6px">圖樣
+            <div class="seg"><button type="button" data-pattern="bars">條紋</button><button type="button" data-pattern="tape">OKN 膠帶</button></div>
+            顏色
+            <div class="seg"><button type="button" data-pal="bw">黑白</button><button type="button" data-pal="rw">紅白</button><button type="button" data-pal="low">低對比</button></div>
+          </div>
+        </div>
+        <p class="expect" id="expect"></p>
+        <label class="field" for="speed"><span class="row"><span>速度</span><span class="mono" id="speed-v"></span></span>
+          <input type="range" id="speed" min="2" max="90" step="1"></label>
+        <label class="field" for="width"><span class="row"><span>條紋寬度</span><span class="mono" id="width-v"></span></span>
+          <input type="range" id="width" min="1" max="15" step="0.5"></label>
+        <div class="ctl-row">
+          <label class="field" for="dist" style="width:130px">觀看距離（cm）<input type="number" id="dist" min="10" max="300" step="1" inputmode="numeric"></label>
+          <div class="field" style="gap:6px">螢幕校正<span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="chip" id="cal-state"></span><button type="button" class="btn small" id="open-cal">校正</button></span></div>
+        </div>
+        <span class="derived" id="derived"></span>
+        <div><button type="button" class="btn small ghost" id="reset">恢復預設值</button></div>
+      </section>
+    </aside>
+  </div>
+
+  <div class="lower">
+    <section class="card">
+      <div class="card-head"><span class="label">各方向反應紀錄</span><button type="button" class="btn small primary" id="f-copy">複製</button></div>
+      <div class="card-body" style="display:grid;gap:10px">
+        <div id="findings"></div>
+        <label class="field" for="f-note">補充<input type="text" id="f-note" placeholder="例如 right eye adduction lag on leftward fast phases"></label>
+        <textarea id="f-out" readonly spellcheck="false" aria-label="OKN 紀錄文字" placeholder="點選上面各方向的反應後，這裡會產生病歷文字。"></textarea>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-head"><span class="label">判讀重點</span></div>
+      <div class="card-body">
+        <ul class="clin">
+          <li><b>正常</b>：慢相順著條紋方向追視，快相往反方向跳回。條紋向右移動時，看到的是左跳眼振。</li>
+          <li><b>深部頂葉病灶</b>：條紋往病灶側移動時反應減弱（Cogan 規則），反映同側平滑追視受損。</li>
+          <li><b>背側中腦（Parinaud）症候群</b>：條紋向下移動需要向上的快相，可誘發 convergence–retraction nystagmus。</li>
+          <li><b>核間性眼肌麻痺（INO）</b>：水平條紋下比較兩眼快相，病側眼內收較慢、跟不上。</li>
+          <li><b>非器質性視力喪失、嬰幼兒</b>：能誘發 OKN 代表有一定程度的視覺輸入。</li>
+          <li>螢幕的刺激範圍比傳統 OKN 鼓小，反應較弱時請放大到全螢幕、縮短觀看距離後再判斷。</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</main>
+
+<dialog class="na-dialog" id="cal" aria-label="螢幕校正">
+  <div class="card-head"><span class="label">螢幕校正</span><button type="button" class="btn small" id="cal-cancel">取消</button></div>
+  <div class="card-body cal-wrap">
+    <p class="note">拿一張信用卡或健保卡（標準卡片 85.6 × 54 mm）貼在螢幕上，拖動滑桿讓虛線框剛好和卡片一樣寬。</p>
+    <div class="card-shape" id="card"></div>
+    <label class="field" for="cal-range" style="width:100%">卡片寬度<input type="range" id="cal-range" min="150" max="900" step="1"></label>
+    <span class="derived" id="cal-px"></span>
+    <div class="btn-row"><button type="button" class="btn primary" id="cal-ok">儲存校正</button><button type="button" class="btn ghost" id="cal-clear">清除校正</button></div>
+  </div>
+</dialog>
+
+<footer id="na-footer"></footer>
+
+<script src="../../assets/js/tools.config.js"></script>
+<script src="../../assets/js/neuro-a.js"></script>
+<script src="okn.js"></script>
+</body>
+</html>

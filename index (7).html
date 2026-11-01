@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-Hant" data-root="./">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neuro-A</title>
+<meta name="description" content="Neuro-A：神經科臨床工具箱。NIHSS、CRS-R、OKN、攝影眼振圖、藥單整理。">
+<meta name="theme-color" content="#08666e">
+<link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="assets/css/neuro-a.css">
+<script>try{var t=JSON.parse(localStorage.getItem('neuroa:theme'));if(t&&t!=='system')document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body>
+<header id="na-header"></header>
+
+<main class="na-main">
+  <section class="home-hero">
+    <h1>神經科臨床工具箱</h1>
+    <p>床邊評估、眼動檢查與日常作業用的小工具。手機、平板、電腦都能用，所有資料只在你的瀏覽器裡處理，不會上傳。</p>
+  </section>
+  <div id="tool-groups" style="display:grid;gap:22px"></div>
+</main>
+
+<footer id="na-footer"></footer>
+
+<script src="assets/js/tools.config.js"></script>
+<script src="assets/js/neuro-a.js"></script>
+<script>
+(function () {
+  const NA = window.NeuroA;
+  const STATUS = { ready: '', beta: '<span class="chip warn">試用中</span>', planned: '<span class="chip">規劃中</span>' };
+  const NEEDS = { camera: '<span class="chip">需要鏡頭</span>' };
+  const groups = NA.groups || [...new Set(NA.tools.map((t) => t.group))];
+  document.getElementById('tool-groups').innerHTML = groups.map((g) => {
+    const tools = NA.tools.filter((t) => t.group === g);
+    if (!tools.length) return '';
+    return `<section class="home-group"><h2>${NA.esc(g)}</h2><div class="tool-grid">${tools.map((t) => {
+      const tag = t.status === 'planned' ? 'div' : 'a';
+      const meta = (STATUS[t.status] || '') + (t.needs || []).map((n) => NEEDS[n] || '').join('');
+      return `<${tag} class="tool-card${t.status === 'planned' ? ' planned' : ''}"${tag === 'a' ? ` href="${NA.root}${t.path}"` : ''}>
+        <span class="ic">${NA.icon(t.icon)}</span>
+        <span class="t"><b>${NA.esc(t.name)}</b><span>${NA.esc(t.zh)}</span></span>
+        <p>${NA.esc(t.desc)}</p>
+        ${meta ? `<span class="meta">${meta}</span>` : ''}
+      </${tag}>`;
+    }).join('')}</div></section>`;
+  }).join('');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-Hant" data-root="../../" data-tool="crs-r">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CRS-R · Neuro-A</title>
+<meta name="description" content="Coma Recovery Scale–Revised 階梯圖評分與判讀">
+<meta name="theme-color" content="#08666e">
+<link rel="icon" href="../../assets/img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../assets/img/icon-180.png">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../../assets/css/neuro-a.css">
+<script>try{var t=JSON.parse(localStorage.getItem('neuroa:theme'));if(t&&t!=='system')document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+.result{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;padding:14px 18px}
+.result .tot{display:flex;align-items:baseline;gap:8px}
+.result .tot .lbl{font-size:.76rem;letter-spacing:.14em;color:var(--ink-3);font-weight:600;margin-right:4px}
+.result .tot b{font-family:var(--f-mono);font-size:2.6rem;line-height:1;font-weight:600}
+.result .tot span.mono{color:var(--ink-3)}
+.dx{display:grid;gap:0;padding:4px 0 4px 14px;border-left:4px solid var(--line)}
+.dx b{font-size:1.5rem;line-height:1.2;font-family:var(--f-mono);font-weight:600}
+.dx span{font-size:.82rem;color:var(--ink-2)}
+.dx.tone-accent{border-color:var(--accent)} .dx.tone-accent b{color:var(--accent)}
+.dx.tone-indigo{border-color:var(--accent-2)} .dx.tone-indigo b{color:var(--accent-2)}
+.dx.tone-warn{border-color:var(--warn)} .dx.tone-warn b{color:var(--warn)}
+.dx.tone-crit{border-color:var(--crit)} .dx.tone-crit b{color:var(--crit)}
+.dx.tone-none b{color:var(--ink-3)}
+.trig{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.84rem;flex:1 1 280px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:.8rem;color:var(--ink-2)}
+.legend i{display:inline-block;width:4px;height:14px;border-radius:2px;margin-right:6px;vertical-align:-2px}
+
+.ladders{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;align-items:stretch}
+@media (max-width:1180px){.ladders{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){.ladders{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ladder{display:flex;flex-direction:column}
+.ladder-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line-2)}
+.lic{flex:none;width:30px;height:30px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.lic svg{width:18px;height:18px}
+.lt{display:grid;line-height:1.25;min-width:0}
+.lt b{font-size:.98rem;font-family:var(--f-tc)}
+.lt span{font-size:.72rem;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ls{margin-left:auto;color:var(--ink-3);font-size:.82rem;white-space:nowrap}
+.ls b{font-size:1.3rem;color:var(--ink)}
+.levels{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;padding:8px}
+.lv{display:grid;grid-template-columns:4px 20px minmax(0,1fr);gap:8px;align-items:start;text-align:left;padding:7px 8px 7px 0;border:1px solid var(--line-2);border-radius:6px;background:var(--surface);cursor:pointer;color:var(--ink);overflow:hidden;transition:background .12s,border-color .12s}
+.lv:hover{border-color:var(--accent-line)}
+.stripe{align-self:stretch;margin:-7px 0;background:var(--ink-3);opacity:.3}
+.lv.cat-mcs .stripe{background:var(--accent)}
+.lv.cat-emcs .stripe{background:var(--accent-2)}
+.lv.ach .stripe{opacity:1}
+.lv-s{font-family:var(--f-mono);font-weight:600;font-size:.95rem;text-align:center;line-height:1.4}
+.lv-t{display:grid;gap:1px;min-width:0}
+.lv-t .zh{font-size:.86rem;font-weight:500;line-height:1.35}
+.lv-t .en{font-size:.7rem;color:var(--ink-3);line-height:1.3}
+.lv-t .hint{font-size:.74rem;color:var(--ink-2);margin-top:3px;line-height:1.45}
+.plus{font-style:normal;font-family:var(--f-mono);font-size:.7rem;font-weight:700;color:var(--accent);margin-left:5px;border:1px solid var(--accent-line);border-radius:3px;padding:0 3px;vertical-align:1px}
+.lv.ach:not(.sel){background:var(--raise)}
+.lv.sel{border-color:var(--ink-2);background:var(--sunk);box-shadow:inset 0 0 0 1px var(--ink-2)}
+.lv.sel.cat-mcs{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.lv.sel.cat-emcs{border-color:var(--accent-2);background:var(--accent-2-soft);box-shadow:inset 0 0 0 1px var(--accent-2)}
+
+.lower{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:860px){.lower{grid-template-columns:minmax(0,1fr)}}
+.meta-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.meta-fields{grid-template-columns:minmax(0,1fr)}}
+#out{width:100%;min-height:96px;resize:vertical;font-family:var(--f-mono);font-size:.8rem;line-height:1.6;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--raise);color:var(--ink)}
+.notes{margin:0;padding-left:1.2em;display:grid;gap:8px;font-size:.86rem;color:var(--ink-2)}
+
+.rec-best{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.86rem}
+#rec-table th{white-space:nowrap}
+#rec-table thead th.col{text-align:center;min-width:92px}
+#rec-table thead th small{display:block;font-weight:400;letter-spacing:0;color:var(--ink-2);font-size:.74rem;text-transform:none}
+#rec-table tbody th{font-size:.84rem;font-weight:500;letter-spacing:0;color:var(--ink);text-transform:none}
+#rec-table td{text-align:center}
+#rec-table td.cat-mcs{color:var(--accent);font-weight:600}
+#rec-table td.cat-emcs{color:var(--accent-2);font-weight:600}
+#rec-table tr.tot td,#rec-table tr.tot th{font-weight:700;border-top:1px solid var(--line)}
+#rec-table tr.act td{white-space:nowrap}
+#rec-table td.empty{text-align:left;color:var(--ink-3);padding:18px 10px}
+</style>
+</head>
+<body>
+<header id="na-header"></header>
+
+<main class="na-main wide">
+  <div class="na-pagehead">
+    <div>
+      <h1>CRS-R <small>Coma Recovery Scale–Revised</small></h1>
+      <p>每個子量表點選觀察到的最高等級。左側色條代表該行為的意義：灰色為反射性，綠色為 MCS 指標，藍色為脫離 MCS 指標。</p>
+    </div>
+    <label class="check"><input type="checkbox" id="hints"> 顯示施測提示</label>
+  </div>
+
+  <section class="card result" aria-live="polite">
+    <div class="tot"><span class="lbl">總分</span><b id="total">0</b><span class="mono" id="total-max">/ 23</span></div>
+    <div class="dx" id="dx"></div>
+    <div class="trig" id="trig"></div>
+    <span class="faint" id="prog" style="font-size:.8rem"></span>
+  </section>
+
+  <div class="legend">
+    <span><i style="background:var(--ink-3);opacity:.6"></i>反射性／非意識行為</span>
+    <span><i style="background:var(--accent)"></i>MCS 指標</span>
+    <span><span class="plus" style="margin:0 6px 0 0">+</span>MCS+（語言相關）</span>
+    <span><i style="background:var(--accent-2)"></i>脫離 MCS（eMCS）</span>
+  </div>
+
+  <div class="ladders" id="ladders"></div>
+
+  <div class="lower">
+    <section class="card">
+      <div class="card-head"><span class="label">病歷文字</span>
+        <div class="seg" id="fmt"><button type="button" data-fmt="compact">精簡</button><button type="button" data-fmt="detailed">逐項</button></div>
+      </div>
+      <div class="card-body" style="display:grid;gap:10px">
+        <div class="meta-fields">
+          <label class="field" for="case">個案代號<input type="text" id="case" list="case-list" placeholder="例如 DoC-03" maxlength="30"><datalist id="case-list"></datalist></label>
+          <label class="field" for="when">評估時間<input type="datetime-local" id="when"></label>
+          <label class="field" for="label">標記<input type="text" id="label" placeholder="例如 rTMS 後第 1 週" maxlength="40"></label>
+        </div>
+        <textarea id="out" readonly spellcheck="false" aria-label="病歷文字"></textarea>
+        <div class="btn-row">
+          <button type="button" class="btn primary" id="copy">複製</button>
+          <button type="button" class="btn" id="save">儲存到紀錄</button>
+          <button type="button" class="btn danger" id="reset">重設</button>
+        </div>
+        <p class="faint" style="font-size:.76rem">個案代號與標記請用不可識別病人的代碼，勿填姓名或病歷號。</p>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-head"><span class="label">施測注意</span></div>
+      <div class="card-body"><ul class="notes" id="notes"></ul></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <div class="card-head">
+      <div class="rec-best"><span class="label">連續評估紀錄</span><span class="chip" id="rec-count"></span><span id="rec-best" class="rec-best"></span></div>
+      <button type="button" class="btn small" id="csv">匯出全部 CSV</button>
+    </div>
+    <div class="table-wrap"><table class="na-table" id="rec-table"></table></div>
+    <p class="note" style="padding:10px 16px;border-top:1px solid var(--line-2)">紀錄依「個案代號」分開顯示，只存在這台裝置的瀏覽器中；清除瀏覽器資料會一併刪除，重要資料請定期匯出 CSV。</p>
+  </section>
+</main>
+
+<footer id="na-footer"></footer>
+
+<script src="../../assets/js/tools.config.js"></script>
+<script src="../../assets/js/neuro-a.js"></script>
+<script src="crsr.data.js"></script>
+<script src="crsr.js"></script>
+</body>
+</html>
